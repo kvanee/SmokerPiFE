@@ -1,0 +1,29 @@
+{
+  "name": "SmokerPi",
+  "version": "0.0.1",
+  "description": "BBQ Smoker temperature controller",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "debug": "nodemon --inspect=0.0.0.0:9229 app.js"
+  },
+  "author": "kvanee",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.4.0",
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "date-and-time": "^3.0.0",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "nedb-promises": "^6.2.1",
+    "nodemon": "^2.0.22",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
+    "pug": "^3.0.2",
+    "serve-favicon": "^2.5.0",
+    "socket.io": "^4.6.1",
+    "validate.js": "^0.13.1"
+  }
+}

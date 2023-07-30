@@ -1,0 +1,18 @@
+extends layout.pug
+include partials/form-field.pug
+block content
+  .row.mt-5
+    .col-md-10.m-auto
+      .card.card-body
+        h1.text-center.mb-3
+          i.fas.fa-user-plus
+          |  Register
+        form(action='/users/register' method='POST')
+          +formfor('email', 'Email', email, 'email', 'Enter Email')
+          +formfor('password', 'Password', password, 'password', 'Enter Password')
+          +formfor('confirmpassword', 'Confirm Password', confirmpassword, 'password', 'Confirm Password')
+          button#register.btn.btn-primary.btn-block(type='submit')
+            | Register
+        p.lead.mt-4
+          | Already Have An Account? 
+          a(href='/users/login') Login

@@ -1,0 +1,12 @@
+{
+  "short_name": "SmokerPi",
+  "name": "SmokerPi",
+  "icons": [
+    {
+      "src": "/public/images/favicon.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    }
+  ],
+  "gcm_sender_id": "103953800507"
+}

@@ -1,0 +1,17 @@
+extends layout.pug
+include partials/form-field.pug
+block content
+  .row.mt-5
+    .col-md-10.m-auto
+      .card.card-body
+        h1.text-center.mb-3
+          i.fas.fa-sign-in-alt
+          |   Login
+        form(action='/users/login' method='POST')
+          +formfor('email', 'Email', email, 'email', 'Enter Email')
+          +formfor('password', 'Password', password, 'password', 'Enter Password')
+          button.btn.btn-primary.btn-block(type='submit') 
+            | Login
+        p.lead.mt-4
+          | Don't have an Account? 
+          a(href='/users/register') Register

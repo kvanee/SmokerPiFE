@@ -1,0 +1,18 @@
+extends ../layout.pug
+include ../partials/form-field.pug
+block content
+  .row.mt-5
+    .col-md-10.m-auto
+      .card.card-body
+        h1.text-center.mb-3
+          i.fas.fa-burn
+          |  New Session
+        form(action='/session/new' method='POST')
+          +formfor('sessionName', 'Session Name', sessionName, 'text', 'Enter Session Name')
+          +formfor('targetTemp', 'Target Temp', targetTemp)
+          +formfor('alertMeat', 'Alert Meat Temp', alertMeat)
+          +formfor('alertHigh', 'Alert BBQ Temp High', alertHigh)
+          +formfor('alertLow', 'Alert BBQ Temp Low', alertLow)
+          +formfor('period', 'Measurement Period (s)', period)
+          button.btn.btn-primary.btn-block(type='submit')
+            | Start

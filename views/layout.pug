@@ -1,0 +1,22 @@
+doctype html
+head
+  meta(charset='UTF-8')
+  meta(name='viewport' content='width=device-width, initial-scale=1.0')
+  meta(http-equiv='X-UA-Compatible' content='ie=edge')
+  script(src='https://www.gstatic.com/firebasejs/4.13.0/firebase-app.js')
+  script(src='https://www.gstatic.com/firebasejs/4.13.0/firebase-messaging.js')
+  link(rel='stylesheet' href='/css/bootstrap.min.css')
+  link(rel='stylesheet' href='/css/main.css')
+  block head_scripts
+  title SmokerPi
+body
+    .container
+      include partials/messages.pug
+      block content
+
+script(src='/js/jquery.min.js')
+script(src='/js/bootstrap.min.js')
+script(src='/socket.io/socket.io.js')
+script(src="https://kit.fontawesome.com/8c1c40442a.js")
+script(src='/js/fcmNotifications.js')
+block footer_scripts

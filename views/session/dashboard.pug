@@ -1,0 +1,73 @@
+extends ../layout.pug
+include ../partials/form-field.pug
+block content
+  .row.mt-5
+      #updateError.col-md-10.m-auto        
+  .row.mt-5
+    .col-md-10.m-auto
+      .card.card-body.text-center
+        .row.d-inline
+          i.fas.fa-thermometer-half.fa-2x
+          h1#currBbqTemp.d-inline.ml-3 Smoker: 0°F
+        .row.d-inline
+          i.fas.fa-thermometer-half.fa-2x
+          h1#currMeatTemp.d-inline.ml-3 Meat: 0°F
+        br
+        if(isAdmin)
+          .btn-group(data-toggle='buttons')
+            label.btn.btn-lg.btn-outline-warning.disabled.font-weight-bold(style='font pointer-events:none;') Blower
+            label.btn.btn-lg.btn-warning
+              input#BlowerOff(value='off' type='radio' name='setBlowerState' checked=(blowerState=="off"))
+              | Off
+            label.btn.btn-lg.btn-warning
+              input#BlowerAuto(value='auto' type='radio' name='setBlowerState' checked=(blowerState=="auto"))
+              | Auto
+            label.btn.btn-lg.btn-warning
+              input#BlowerOn(value='on' type='radio' name='setBlowerState' checked=(blowerState=="on"))
+              | On
+          br
+          .btn-group(data-toggle='buttons')
+            label.btn.btn-lg.btn-outline-warning.disabled.font-weight-bold(style='pointer-events:none;') Logger
+            label.btn.btn-lg.btn-warning
+              input#LoggerOff(value='off' type='radio' name='setLogState' checked=(logState=="off"))
+              | Off
+            label.btn.btn-lg.btn-warning
+              input#LoggerOn(value='on' type='radio' name='setLogState' checked=(logState=="on"))
+              | On
+          br
+          form(action='/session/dashboard' method='POST')
+            button#done.btn.btn-primary.btn-block(type='submit')
+              | Done
+  br
+  .row.mt-6.mb-6
+    .col-md-10.m-auto
+      .text-center
+        h1
+          =sessionName
+          if(isAdmin)
+            a.btn.btn-primary.fa.fa-bars.ml-3.navbar-link(data-toggle="modal" data-target="#settingsModal")
+  br
+  canvas#myChart(width='400' height='400')
+  input#sessionName(value=sessionName, style='display:none')
+  
+  div#settingsModal(class="modal fade", tabindex="-1", role="dialog" labelledby="settingsModalLabel" aria-hidden="true")
+    div(class="modal-dialog modal-dialog-centered", role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h4#settingsModalLabel(class="modal-title") Settings
+          button.close(type='button' data-dismiss='modal' aria-label='Close')
+            span(aria-hidden='true') &times;          
+        div(class="modal-body")
+          +formfor('targetTemp', 'Target Temp', targetTemp)
+          +formfor('alertHigh', 'Alert High', alertHigh)
+          +formfor('alertLow', 'Alert Low', alertLow)
+          +formfor('alertMeat', 'Alert Meat', alertMeat)
+          +formfor('period', 'Measurement Period (s)', period)
+        div(class="modal-footer")
+          button#cancelSettings(type="button", class="btn btn-default", data-dismiss="modal") Close
+          button#saveSettings(type="button", class="btn btn-primary", data-dismiss="modal") Save changes
+
+block footer_scripts
+  script(src='/js/chart.min.js')
+  script(src='/js/dashboard.js')
+  script(src='/js/dashboardChart.js')

@@ -1,0 +1,21 @@
+extends layout.pug
+include partials/form-field.pug
+block content
+  .row.mt-5
+    .col-md-10.m-auto
+      .card.card-body
+        h1.text-center SmokerPi
+          br
+          img(src="/images/grill.png", alt="")
+        p.text-center Please setup a wifi connection to continue
+        form(action='/' method='POST')
+          label(for='ssid') Network
+          .input-group.mb-3
+            select#ssid.custom-select(name='ssid')
+              each ssid in ssids
+                option(value=ssid) #{ssid}
+          +formfor('password', 'Password', password, 'password', 'Enter Password')
+          button.btn.btn-primary.btn-block(type='submit') 
+            | Connect
+        
+          

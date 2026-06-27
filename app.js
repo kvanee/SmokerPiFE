@@ -68,8 +68,9 @@ app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/session', authenticate, require('./routes/session'));
 
-//Direct home on 401
-app.get('*', function (req, res) {
+//Direct home on 401 (catch-all GET; Express 5 / path-to-regexp v8 no longer
+//accepts the bare '*' string, so use a regex to match any path)
+app.get(/.*/, function (req, res) {
 	res.redirect('/');
 });
 

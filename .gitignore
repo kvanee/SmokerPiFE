@@ -1,0 +1,15 @@
+node_modules/
+
+# nedb data files
+*.db
+
+# Logs
+npm-debug.log*
+logs/
+*.log
+
+# Environment
+.env
+
+# OS / editor
+.DS_Store

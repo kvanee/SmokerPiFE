@@ -25,9 +25,12 @@ app.use(express.urlencoded({
 	extended: false
 }))
 
+//Trust the reverse proxy (Dokku/nginx) so secure cookies and protocol work correctly
+app.set('trust proxy', 1);
+
 //Express Session
 const sessionMiddleware = session({
-	secret: 'deodorant',
+	secret: process.env.SESSION_SECRET || 'deodorant',
 	resave: true,
 	saveUninitialized: true
 });
@@ -55,6 +58,11 @@ app.use(favicon(__dirname + '/public/images/favicon.png'));
 //Add static routes
 app.use(express.static('public'));
 
+//Health check (used by Dokku CHECKS) - must be before the catch-all redirect
+app.get('/health-check', function (req, res) {
+	res.sendStatus(200)
+});
+
 //Routes
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
@@ -71,12 +79,7 @@ app.get('*', function (req, res) {
 //Socket.IO
 require('./config/socket.io')(server, sessionMiddleware);
 
-
-app.get('/health-check', function (req, res) {
-	res.sendStatus(200)
-});
-
-const port = 3080;
+const port = process.env.PORT || 3080;
 server.listen(port, function () {
 	console.log('listening on port ' + port);
 });

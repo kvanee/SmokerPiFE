@@ -1,0 +1,7 @@
+# Dokku zero-downtime deployment health check.
+# Waits for the app to respond before switching traffic to the new container.
+WAIT=5
+TIMEOUT=30
+ATTEMPTS=6
+
+/health-check

@@ -1,23 +1,33 @@
 $(document).ready(function () {
 	const socket = io();
 
-	function setConnectionStatus(connected) {
-		const $status = $('#connectionStatus');
-		$status
-			.toggleClass('connected', connected)
-			.toggleClass('disconnected', !connected);
-		$('#connectionStatusText').text(connected ? 'Connected' : 'Disconnected');
+	let disconnectTimer = null;
+
+	function showConnected() {
+		if (disconnectTimer) {
+			clearTimeout(disconnectTimer);
+			disconnectTimer = null;
+		}
+		$('#connectionStatus').addClass('connected').removeClass('disconnected');
+		$('#connectionStatusText').text('Connected');
 	}
 
-	socket.on('connect', function () {
-		setConnectionStatus(true);
-	});
-	socket.on('disconnect', function () {
-		setConnectionStatus(false);
-	});
-	socket.on('connect_error', function () {
-		setConnectionStatus(false);
-	});
+	// Debounce the "disconnected" state: Socket.IO reconnects automatically, so a
+	// brief blip shouldn't flap the indicator. Only show red if we stay down.
+	function showDisconnected() {
+		if (disconnectTimer) {
+			return;
+		}
+		disconnectTimer = setTimeout(function () {
+			disconnectTimer = null;
+			$('#connectionStatus').addClass('disconnected').removeClass('connected');
+			$('#connectionStatusText').text('Disconnected');
+		}, 2000);
+	}
+
+	socket.on('connect', showConnected);
+	socket.on('disconnect', showDisconnected);
+	socket.on('connect_error', showDisconnected);
 
 	$('input[name=setBlowerState]:checked').parent().addClass('active');
 	$('input[name=setLogState]:checked').parent().addClass('active');

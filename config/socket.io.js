@@ -2,7 +2,6 @@ const db = require("../DataStore/datastore");
 const validate = require("validate.js");
 const sessionConstraints = require('../validation/session');
 const monitor = require('../bbqMonitor');
-let inAlert = false;
 
 // Browser origins allowed to open a Socket.IO connection. Without this check the
 // WebSocket handshake is authorized purely by the session cookie, which lets a
@@ -39,17 +38,6 @@ module.exports = function (server, sessionMiddleware) {
     function handleMonitorEvent(data) {
         if (typeof data != 'undefined') {
             io.emit('updateTemp', data);
-            if (data.currMeatTemp >= monitor.alertMeat) {
-                if (!inAlert) {
-                    inAlert = true;
-                }
-            } else if (data.currBbqTemp > monitor.alertHigh || data.currBbqTemp < monitor.alertLow) {
-                if (!inAlert) {
-                    inAlert = true;
-                }
-            } else if (inAlert) {
-                inAlert = false;
-            }
         }
     }
 

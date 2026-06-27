@@ -22,7 +22,45 @@ const BBQMonitorSingleton = (function () {
 			this.currMeatTemp = -99;
 			this.isSessionStarted = false;
 			this.isSessionComplete = false;
+			// Set once the smoker first reaches the low threshold, so we don't
+			// fire "too cool" alerts while it's still warming up from cold.
+			this.warmedUp = false;
 			this.setupTimer(this.period);
+		}
+
+		// Reset per-cook alert state at the start of a new session.
+		startSession() {
+			this.isSessionStarted = true;
+			this.isSessionComplete = false;
+			this.warmedUp = false;
+		}
+
+		// Evaluate the current temperatures against the configured thresholds.
+		// Only alerts during an active cook. Returns the temperature problem
+		// (too hot / too cool) and a separate "meat reached target" signal.
+		evaluateAlert() {
+			const active = this.isSessionStarted && !this.isSessionComplete;
+			let alert = { active: false, type: 'none', reason: '' };
+			if (active) {
+				if (this.currBbqTemp >= this.alertLow) {
+					this.warmedUp = true;
+				}
+				if (this.currBbqTemp > this.alertHigh) {
+					alert = {
+						active: true,
+						type: 'high',
+						reason: 'Smoker too hot: ' + this.currBbqTemp.toFixed(1) + '°F (limit ' + this.alertHigh + '°F)'
+					};
+				} else if (this.warmedUp && this.currBbqTemp < this.alertLow) {
+					alert = {
+						active: true,
+						type: 'low',
+						reason: 'Smoker too cool: ' + this.currBbqTemp.toFixed(1) + '°F (limit ' + this.alertLow + '°F)'
+					};
+				}
+			}
+			const meatReady = active && this.currMeatTemp >= this.alertMeat;
+			return { alert, meatReady };
 		}
 
 		setupTimer(period) {
@@ -97,6 +135,7 @@ const BBQMonitorSingleton = (function () {
 			self.currMeatTemp = res.meat;
 			self.updateBlowerGPIO();
 			let now = new Date();
+			let { alert, meatReady } = self.evaluateAlert();
 			let data = {
 				sessionName: self.sessionName,
 				date: date.format(now, 'YYYY/MM/DD'),
@@ -105,7 +144,11 @@ const BBQMonitorSingleton = (function () {
 				currBbqTemp: self.currBbqTemp.toFixed(1),
 				currMeatTemp: self.currMeatTemp.toFixed(1),
 				targetTemp: self.targetTemp,
-				isBlowerOn: self.isBlowerOn
+				isBlowerOn: self.isBlowerOn,
+				alertActive: alert.active,
+				alertType: alert.type,
+				alertReason: alert.reason,
+				meatReady: meatReady
 			};
 			if (self.logState == "on") {
 				db.sessionLogs.insert(data);

@@ -41,7 +41,7 @@ router.post('/new', authenticateAdmin, (req, res, next) => {
             alertMeat: session.alertMeat
         });
     } else {
-        monitor.isSessionStarted = true;
+        monitor.startSession();
         monitor.setSessionName(sessionName);
         monitor.setupTimer(period);
         monitor.targetTemp = targetTemp;

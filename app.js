@@ -107,6 +107,9 @@ app.get(/.*/, function (req, res) {
 //Socket.IO
 const io = require('./config/socket.io')(server, sessionMiddleware);
 
+//MQTT -> Home Assistant (no-op unless MQTT_URL is configured)
+const mqttClient = require('./config/mqtt')();
+
 //Only start listening when run directly (`node app.js`), not when imported
 //by the test suite, which manages the server lifecycle itself.
 if (require.main === module) {

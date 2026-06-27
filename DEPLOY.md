@@ -20,6 +20,9 @@ Native) buildpack.
     `http://smokerpi.local:3081`.
   - `DATA_DIR` — directory for the nedb `*.db` files. Point this at a mounted
     persistent volume so data survives deploys.
+  - `MQTT_URL` — optional; enables Home Assistant temperature alerts and live
+    sensors over MQTT, e.g. `mqtt://user:pass@10.0.10.3:1883`. Unset = disabled.
+    See [docs/home-assistant-mqtt.md](docs/home-assistant-mqtt.md).
 - **`.gitignore`** — keeps `node_modules/` and the `*.db` data files out of git.
 - **`trust proxy`** is enabled so secure cookies work behind Dokku's nginx.
 

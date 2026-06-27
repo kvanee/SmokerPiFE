@@ -134,3 +134,61 @@ describe('stopTimer', () => {
 		expect(monitor.interval).toBeNull();
 	});
 });
+
+describe('evaluateAlert', () => {
+	beforeEach(() => {
+		monitor.isSessionStarted = true;
+		monitor.isSessionComplete = false;
+		monitor.warmedUp = false;
+		monitor.alertHigh = 245;
+		monitor.alertLow = 225;
+		monitor.alertMeat = 195;
+		monitor.currBbqTemp = 230;
+		monitor.currMeatTemp = 150;
+	});
+
+	test('does not alert when no session is active', () => {
+		monitor.isSessionStarted = false;
+		monitor.currBbqTemp = 300;
+		expect(monitor.evaluateAlert().alert.active).toBe(false);
+	});
+
+	test('flags the smoker being too hot', () => {
+		monitor.currBbqTemp = 260;
+		const { alert } = monitor.evaluateAlert();
+		expect(alert.active).toBe(true);
+		expect(alert.type).toBe('high');
+	});
+
+	test('does not flag "too cool" while still warming up from cold', () => {
+		monitor.warmedUp = false;
+		monitor.currBbqTemp = 100;
+		expect(monitor.evaluateAlert().alert.active).toBe(false);
+	});
+
+	test('flags "too cool" once it has warmed up and then drops', () => {
+		monitor.currBbqTemp = 230; // >= alertLow marks it warmed up
+		monitor.evaluateAlert();
+		monitor.currBbqTemp = 200; // now below alertLow
+		const { alert } = monitor.evaluateAlert();
+		expect(alert.active).toBe(true);
+		expect(alert.type).toBe('low');
+	});
+
+	test('signals when the meat reaches its target', () => {
+		monitor.currMeatTemp = 200;
+		expect(monitor.evaluateAlert().meatReady).toBe(true);
+	});
+
+	test('monitorTemp includes the alert fields in the emitted data', async () => {
+		monitor.warmedUp = true;
+		backend.getTemp.mockResolvedValue({ bbq: 260.0, meat: 150.0 });
+		const handler = jest.fn();
+		monitor.subscribe(handler);
+		await monitor.monitorTemp(monitor);
+		const data = handler.mock.calls[0][0];
+		expect(data.alertActive).toBe(true);
+		expect(data.alertType).toBe('high');
+		expect(data.meatReady).toBe(false);
+	});
+});

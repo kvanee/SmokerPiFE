@@ -13,3 +13,6 @@ logs/
 
 # OS / editor
 .DS_Store
+
+# express-session file store
+sessions/

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const validate = require("validate.js");
 const registrationConstraints = require('../validation/registration')
 const loginConstraints = require('../validation/login')
@@ -23,7 +23,7 @@ const authLimiter = rateLimit({
     legacyHeaders: false,
     keyGenerator: (req) => (req.body && req.body.email)
         ? String(req.body.email).toLowerCase()
-        : req.ip,
+        : ipKeyGenerator(req.ip),
     skip: () => process.env.NODE_ENV === 'test',
     message: 'Too many attempts. Please try again later.'
 });

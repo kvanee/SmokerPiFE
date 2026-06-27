@@ -1,7 +1,9 @@
+const path = require('path');
 const express = require('express');
 const passport = require('passport');
 const flash = require("connect-flash");
 const session = require("express-session");
+const FileStore = require('session-file-store')(session);
 const helmet = require("helmet");
 
 const app = express();
@@ -53,9 +55,24 @@ if (isProd && !sessionSecret) {
 	throw new Error('SESSION_SECRET must be set in production');
 }
 
-//Express Session
+//Express Session.
+//In production, persist sessions to disk (under DATA_DIR, a mounted volume) so a
+//restart or redeploy doesn't wipe everyone's login. The default in-memory store
+//loses all sessions on restart, which silently breaks Socket.IO admin auth
+//(reconnecting sockets carry a now-unknown session id). Tests/dev use the
+//default memory store.
+const dataDir = process.env.DATA_DIR || '.';
 const sessionMiddleware = session({
 	secret: sessionSecret || 'dev-only-insecure-secret',
+	store: isProd
+		? new FileStore({
+			path: path.join(dataDir, 'sessions'),
+			ttl: 7 * 24 * 60 * 60, // 7 days
+			reapInterval: 60 * 60, // prune expired hourly
+			retries: 2,
+			logFn: function () {} // quiet
+		})
+		: undefined,
 	resave: false,
 	saveUninitialized: false,
 	cookie: {

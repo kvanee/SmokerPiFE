@@ -8,13 +8,19 @@ const registrationConstraints = require('../validation/registration')
 const loginConstraints = require('../validation/login')
 const db = require("../DataStore/datastore");
 
-// Throttle login/registration to blunt online password guessing and account
-// spraying. Skipped under test so the suite's repeated logins don't trip it.
+// Throttle login/registration to blunt online password guessing. Keyed by the
+// submitted email rather than IP: behind haproxy every request arrives from the
+// proxy's address, so a per-IP limit would be one shared bucket that locks out
+// all users at once. Per-email keying caps guessing against each account and
+// avoids that. Skipped under test so the suite's repeated logins don't trip it.
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: (req) => (req.body && req.body.email)
+        ? String(req.body.email).toLowerCase()
+        : req.ip,
     skip: () => process.env.NODE_ENV === 'test',
     message: 'Too many attempts. Please try again later.'
 });

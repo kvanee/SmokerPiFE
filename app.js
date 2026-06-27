@@ -35,6 +35,18 @@ app.use(helmet({ contentSecurityPolicy: false }));
 
 const isProd = process.env.NODE_ENV === 'production';
 
+//haproxy terminates TLS but the internal hop to this app is plain HTTP (and
+//nginx sets X-Forwarded-Proto to its own $scheme, i.e. http). Without this the
+//app sees an insecure connection, so express-session drops the Secure session
+//cookie and login can never persist. We are always fronted by haproxy TLS in
+//production, so normalize the forwarded proto before the session middleware.
+if (isProd) {
+	app.use((req, res, next) => {
+		req.headers['x-forwarded-proto'] = 'https';
+		next();
+	});
+}
+
 //Fail closed: never run production on the well-known default session secret.
 const sessionSecret = process.env.SESSION_SECRET;
 if (isProd && !sessionSecret) {

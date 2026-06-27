@@ -59,6 +59,69 @@ git push dokku master
 Dokku will detect the Node.js buildpack, run `npm install`, start the `web`
 process from the `Procfile`, and run the `CHECKS` health check before going live.
 
+## WebSocket / Socket.IO support (required)
+
+This app uses **Socket.IO** for live temperature updates. Socket.IO starts on
+HTTP long-polling and then upgrades to a WebSocket. nginx must forward the
+WebSocket `Upgrade` handshake or the connection never upgrades and falls back to
+long-polling — which is unstable on mobile networks and shows up as a
+**constantly reconnecting connection indicator and temperatures that stop
+updating**, while desktop browsers appear fine.
+
+### Symptom check
+
+In the browser (desktop DevTools → Network → filter `socket.io`):
+
+- **Good:** a request to `…/socket.io/?...` returns **HTTP 101 Switching
+  Protocols** (a `websocket` entry).
+- **Bad:** only repeated `…/socket.io/?...&transport=polling` requests, no 101.
+
+### Fix
+
+1. Make sure Dokku's proxy config is current (modern Dokku ships WebSocket
+   support in its nginx template; an old vhost may predate it):
+
+   ```bash
+   dokku proxy:build-config smokerpi
+   ```
+
+2. If it still won't upgrade, add an app-specific nginx snippet. Dokku includes
+   any `*.conf` file under `/home/dokku/<app>/nginx.conf.d/` into the app's
+   `server { }` block. First find the upstream name Dokku generated:
+
+   ```bash
+   grep -E '^\s*upstream' /home/dokku/smokerpi/nginx.conf
+   # e.g. "upstream smokerpi-3080 { ... }"  -> use that name below
+   ```
+
+   Then create the snippet (replace `smokerpi-3080` with what you found):
+
+   ```bash
+   mkdir -p /home/dokku/smokerpi/nginx.conf.d
+   cat > /home/dokku/smokerpi/nginx.conf.d/socketio.conf <<'EOF'
+   location /socket.io/ {
+       proxy_pass http://smokerpi-3080;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection "upgrade";
+       proxy_set_header Host $host;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $scheme;
+       proxy_read_timeout 86400s;
+       proxy_buffering off;
+   }
+   EOF
+   chown dokku:dokku /home/dokku/smokerpi/nginx.conf.d/socketio.conf
+   service nginx reload   # or: nginx -t && systemctl reload nginx
+   ```
+
+3. Reload the page on mobile and confirm the indicator stays green and
+   temperatures update. The DevTools check should now show the 101 upgrade.
+
+The server side is already tuned to tolerate brief mobile network stalls
+(`pingTimeout`/`pingInterval` in `config/socket.io.js`) so long-polling degrades
+gracefully even before the WebSocket upgrade is working.
+
 ## Notes
 
 - The hardware backend (`BACKEND_URL`) must be reachable from the Dokku host's

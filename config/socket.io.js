@@ -5,7 +5,16 @@ const monitor = require('../bbqMonitor');
 let inAlert = false;
 
 module.exports = function (server, sessionMiddleware) {
-    const io = require('socket.io')(server);
+    const io = require('socket.io')(server, {
+        // Be tolerant of mobile networks that briefly stall: wait longer before
+        // declaring a client gone, so the connection survives transient blips
+        // instead of cycling connect/disconnect (especially on long-polling).
+        pingInterval: 25000,
+        pingTimeout: 60000,
+        // Allow both transports; clients upgrade to websocket when the proxy
+        // forwards the upgrade (see nginx/Dokku config in DEPLOY.md).
+        transports: ['websocket', 'polling']
+    });
     io.use((socket, next) => {
         sessionMiddleware(socket.request, {}, next);
     });

@@ -15,7 +15,10 @@ const db = require("../DataStore/datastore");
 // avoids that. Skipped under test so the suite's repeated logins don't trip it.
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    // Passport returns 302 for both success and failure, so the limiter can't
+    // skip successful logins by status; keep the cap high enough that a user
+    // fumbling their password isn't locked out, while still bounding guessing.
+    max: 20,
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req) => (req.body && req.body.email)

@@ -68,18 +68,27 @@ app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/session', authenticate, require('./routes/session'));
 
-//Direct home on 401
-app.get('*', function (req, res) {
+//Direct home on 401 (catch-all GET; Express 5 / path-to-regexp v8 no longer
+//accepts the bare '*' string, so use a regex to match any path)
+app.get(/.*/, function (req, res) {
 	res.redirect('/');
 });
 
-//FCM
-//const fcm = new fcmLib("https://smoker.kells.io/images/favicon.png");
-
 //Socket.IO
-require('./config/socket.io')(server, sessionMiddleware);
+const io = require('./config/socket.io')(server, sessionMiddleware);
 
-const port = process.env.PORT || 3080;
-server.listen(port, function () {
-	console.log('listening on port ' + port);
-});
+//Only start listening when run directly (`node app.js`), not when imported
+//by the test suite, which manages the server lifecycle itself.
+if (require.main === module) {
+	const port = process.env.PORT || 3080;
+	server.listen(port, function () {
+		console.log('listening on port ' + port);
+	});
+}
+
+module.exports = {
+	app,
+	server,
+	io,
+	sessionMiddleware
+};

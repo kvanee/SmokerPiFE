@@ -1,6 +1,24 @@
 $(document).ready(function () {
 	const socket = io();
 
+	function setConnectionStatus(connected) {
+		const $status = $('#connectionStatus');
+		$status
+			.toggleClass('connected', connected)
+			.toggleClass('disconnected', !connected);
+		$('#connectionStatusText').text(connected ? 'Connected' : 'Disconnected');
+	}
+
+	socket.on('connect', function () {
+		setConnectionStatus(true);
+	});
+	socket.on('disconnect', function () {
+		setConnectionStatus(false);
+	});
+	socket.on('connect_error', function () {
+		setConnectionStatus(false);
+	});
+
 	$('input[name=setBlowerState]:checked').parent().addClass('active');
 	$('input[name=setLogState]:checked').parent().addClass('active');
 	$('#done').click(function () {

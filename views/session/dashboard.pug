@@ -1,8 +1,11 @@
 extends ../layout.pug
 include ../partials/form-field.pug
 block content
+  #connectionStatus.connection-status.disconnected(title='Backend connection status')
+    span.connection-dot
+    span#connectionStatusText Connecting…
   .row.mt-5
-      #updateError.col-md-10.m-auto        
+      #updateError.col-md-10.m-auto
   .row.mt-5
     .col-md-10.m-auto
       .card.card-body.text-center

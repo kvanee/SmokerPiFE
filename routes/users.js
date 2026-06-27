@@ -2,9 +2,22 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const validate = require("validate.js");
 const registrationConstraints = require('../validation/registration')
+const loginConstraints = require('../validation/login')
 const db = require("../DataStore/datastore");
+
+// Throttle login/registration to blunt online password guessing and account
+// spraying. Skipped under test so the suite's repeated logins don't trip it.
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: () => process.env.NODE_ENV === 'test',
+    message: 'Too many attempts. Please try again later.'
+});
 
 
 //Login
@@ -25,14 +38,13 @@ router.get('/logout', (req, res, next) => {
 });
 
 //Login Handle
-router.post('/login', (req, res, next) => {
+router.post('/login', authLimiter, (req, res, next) => {
     let user = {
         email,
         password
     } = req.body;
     //Check required fields
-    //Check required fields
-    let validationErrors = validate(user, registrationConstraints)
+    let validationErrors = validate(user, loginConstraints)
     if (validationErrors)
         res.render('login', {
             validationErrors,
@@ -48,7 +60,7 @@ router.post('/login', (req, res, next) => {
 });
 
 //Register Handle
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
     let user = {
         email,
         password,

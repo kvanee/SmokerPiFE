@@ -83,6 +83,10 @@ $(document).ready(function () {
 		window.location.replace('/session/complete');
 	});
 	socket.on('updateFailed', function (data) {
-		$("#updateError").html('<div class="alert alert-danger" role="alert">' + data + '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>')
+		// Build the alert with .text() so the server-provided message is escaped
+		// rather than injected as HTML.
+		var alert = $('<div class="alert alert-danger" role="alert"></div>').text(data);
+		$('<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>').appendTo(alert);
+		$("#updateError").empty().append(alert);
 	});
 });

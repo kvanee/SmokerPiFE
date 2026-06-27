@@ -73,9 +73,13 @@ router.get('/dashboard', (req, res) => {
 
 router.get('/dashboard/:sessionName', (req, res) => {
     const sessionName = req.params.sessionName;
-    if (typeof req.user != 'undefined' && req.user.isAdmin && sessionName !== monitor.sessionName)
-        if (validate(sessionName, sessionConstraints))
+    if (typeof req.user != 'undefined' && req.user.isAdmin && sessionName !== monitor.sessionName) {
+        // validate() returns undefined when the value is valid; only adopt the
+        // new name if it passes the sessionName constraint.
+        const errors = validate({ sessionName }, { sessionName: sessionConstraints.sessionName });
+        if (!errors)
             monitor.setSessionName(sessionName);
+    }
 
     res.render("session/dashboard", {
         currBbqTemp: monitor.currBbqTemp.toFixed(1),

@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const flash = require("connect-flash");
 const session = require("express-session");
+const helmet = require("helmet");
 
 const app = express();
 const {
@@ -28,11 +29,28 @@ app.use(express.urlencoded({
 //Trust the reverse proxy (Dokku/nginx) so secure cookies and protocol work correctly
 app.set('trust proxy', 1);
 
+//Security headers. CSP is left off because the UI relies on a CDN script and
+//inline style attributes; enabling it needs a hand-crafted policy (see DEPLOY.md).
+app.use(helmet({ contentSecurityPolicy: false }));
+
+const isProd = process.env.NODE_ENV === 'production';
+
+//Fail closed: never run production on the well-known default session secret.
+const sessionSecret = process.env.SESSION_SECRET;
+if (isProd && !sessionSecret) {
+	throw new Error('SESSION_SECRET must be set in production');
+}
+
 //Express Session
 const sessionMiddleware = session({
-	secret: process.env.SESSION_SECRET || 'deodorant',
-	resave: true,
-	saveUninitialized: true
+	secret: sessionSecret || 'dev-only-insecure-secret',
+	resave: false,
+	saveUninitialized: false,
+	cookie: {
+		httpOnly: true,
+		secure: isProd, // requires HTTPS; trust proxy lets this work behind haproxy/nginx
+		sameSite: 'lax' // blocks cross-site cookie use -> mitigates CSRF and CSWSH
+	}
 });
 app.use(
 	sessionMiddleware

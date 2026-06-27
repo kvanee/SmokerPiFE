@@ -10,26 +10,27 @@ module.exports = function (passport) {
         new LocalStrategy({
             usernameField: 'email'
         }, async (email, password, done) => {
-            //Match User
-            user = await db.users.findOne({
-                email: email
-            })
-            if (!user) {
-                return done(null, false, {
-                    message: "Account not registered"
-                });
-            }
-            //Match Password
-            bcrypt.compare(password, user.password, (err, isMatch) => {
-                if (err) throw err;
-                if (isMatch) {
-                    return done(null, user);
-                } else {
+            try {
+                //Match User
+                const user = await db.users.findOne({
+                    email: email
+                })
+                if (!user) {
                     return done(null, false, {
-                        message: 'Incorrect Password'
+                        message: "Account not registered"
                     });
                 }
-            });
+                //Match Password
+                const isMatch = await bcrypt.compare(password, user.password);
+                if (isMatch) {
+                    return done(null, user);
+                }
+                return done(null, false, {
+                    message: 'Incorrect Password'
+                });
+            } catch (err) {
+                return done(err);
+            }
         })
     );
     passport.serializeUser((user, done) => {
@@ -37,9 +38,13 @@ module.exports = function (passport) {
     });
 
     passport.deserializeUser(async (id, done) => {
-        user = await db.users.findOne({
-            email: id
-        });
-        done(null, user);
+        try {
+            const user = await db.users.findOne({
+                email: id
+            });
+            done(null, user);
+        } catch (err) {
+            done(err);
+        }
     });
 }

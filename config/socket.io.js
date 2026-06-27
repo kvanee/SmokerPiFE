@@ -4,6 +4,13 @@ const sessionConstraints = require('../validation/session');
 const monitor = require('../bbqMonitor');
 let inAlert = false;
 
+// Browser origins allowed to open a Socket.IO connection. Without this check the
+// WebSocket handshake is authorized purely by the session cookie, which lets a
+// malicious page a logged-in admin visits drive the smoker on their behalf
+// (Cross-Site WebSocket Hijacking). Configurable via ALLOWED_ORIGINS (comma list).
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://smoker.kells.io')
+    .split(',').map((o) => o.trim()).filter(Boolean);
+
 module.exports = function (server, sessionMiddleware) {
     const io = require('socket.io')(server, {
         // Be tolerant of mobile networks that briefly stall: wait longer before
@@ -13,7 +20,17 @@ module.exports = function (server, sessionMiddleware) {
         pingTimeout: 60000,
         // Allow both transports; clients upgrade to websocket when the proxy
         // forwards the upgrade (see nginx/Dokku config in DEPLOY.md).
-        transports: ['websocket', 'polling']
+        transports: ['websocket', 'polling'],
+        // Restrict cross-origin polling requests to known origins.
+        cors: { origin: ALLOWED_ORIGINS, credentials: true },
+        // Reject the handshake (incl. raw WebSocket, which bypasses CORS) when a
+        // browser Origin is present and not whitelisted. Non-browser clients send
+        // no Origin and are allowed through.
+        allowRequest: (req, callback) => {
+            const origin = req.headers.origin;
+            const ok = !origin || ALLOWED_ORIGINS.includes(origin);
+            callback(ok ? null : 'origin not allowed', ok);
+        }
     });
     io.use((socket, next) => {
         sessionMiddleware(socket.request, {}, next);
@@ -46,7 +63,7 @@ module.exports = function (server, sessionMiddleware) {
         let user = {};
         try {
             if (socket.request.session.passport) {
-                id = socket.request.session.passport.user;
+                const id = socket.request.session.passport.user;
                 user = await db.users.findOne({
                     email: id
                 });

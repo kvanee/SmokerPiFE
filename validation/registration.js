@@ -10,7 +10,7 @@ const constraints = {
             allowEmpty: false
         },
         length: {
-            minimum: 6
+            minimum: 8
         }
     },
     confirmpassword: {

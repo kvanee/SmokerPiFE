@@ -4,7 +4,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
     //already logged in
     if (typeof req.user != 'undefined')
-        res.redirect("/session/dashboard");
+        return res.redirect("/session/dashboard");
     res.render("welcome")
 });
 

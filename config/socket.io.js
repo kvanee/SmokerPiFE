@@ -116,9 +116,6 @@ module.exports = function (server, sessionMiddleware) {
         socket.on('setSessionDone', function (token) {
             socket.broadcast.emit('sessionDone');
         });
-        socket.on('setFcmToken', function (token) {
-            // fcm.addFCMListener(token);
-        });
     });
-    return {}
+    return io;
 }

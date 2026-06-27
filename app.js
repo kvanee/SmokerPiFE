@@ -73,13 +73,21 @@ app.get('*', function (req, res) {
 	res.redirect('/');
 });
 
-//FCM
-//const fcm = new fcmLib("https://smoker.kells.io/images/favicon.png");
-
 //Socket.IO
-require('./config/socket.io')(server, sessionMiddleware);
+const io = require('./config/socket.io')(server, sessionMiddleware);
 
-const port = process.env.PORT || 3080;
-server.listen(port, function () {
-	console.log('listening on port ' + port);
-});
+//Only start listening when run directly (`node app.js`), not when imported
+//by the test suite, which manages the server lifecycle itself.
+if (require.main === module) {
+	const port = process.env.PORT || 3080;
+	server.listen(port, function () {
+		console.log('listening on port ' + port);
+	});
+}
+
+module.exports = {
+	app,
+	server,
+	io,
+	sessionMiddleware
+};

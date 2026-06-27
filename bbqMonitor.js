@@ -36,6 +36,13 @@ const BBQMonitorSingleton = (function () {
 			}, period * 1000);
 		}
 
+		stopTimer() {
+			if (this.interval) {
+				clearInterval(this.interval);
+				this.interval = null;
+			}
+		}
+
 		setSessionName(name) {
 			this.sessionName = name;
 			this.sessionNameSubscribers.forEach((subscriber) => {

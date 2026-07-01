@@ -8,15 +8,24 @@ push notification that **repeats until you acknowledge it**.
 
 ```bash
 dokku config:set smoker \
-  MQTT_URL="mqtt://USER:PASS@10.0.10.3:1883"
+  MQTT_URL="mqtt://10.0.10.3:1883" \
+  MQTT_USERNAME="smokerpi" \
+  MQTT_PASSWORD="your-password"
 # optional overrides:
 #   MQTT_TOPIC_PREFIX=smokerpi      (state/availability base topic)
 #   MQTT_DISCOVERY_PREFIX=homeassistant
 ```
 
+Credentials: prefer `MQTT_USERNAME` / `MQTT_PASSWORD` env vars (they override any
+creds in the URL and avoid URL-encoding pitfalls). You can still embed them as
+`mqtt://user:pass@host:port`, but a password containing `@ : / #` must be
+percent-encoded or it will mis-parse and the broker returns **"Connection
+refused: Not authorized"**.
+
 If `MQTT_URL` is unset the integration is silently skipped (nothing breaks).
 Use a dedicated MQTT user limited (via broker ACL) to the `smokerpi/#` and
-`homeassistant/#` topics.
+`homeassistant/#` topics. For the Home Assistant Mosquitto add-on, that user is
+typically a Home Assistant login (or a `logins:` entry in the add-on config).
 
 ## 2. Entities created (no manual config needed)
 

@@ -24,6 +24,8 @@ beforeEach(() => {
 	monitor.handlers = [];
 	delete process.env.MQTT_URL;
 	delete process.env.MQTT_TOPIC_PREFIX;
+	delete process.env.MQTT_USERNAME;
+	delete process.env.MQTT_PASSWORD;
 });
 
 describe('mqtt integration', () => {
@@ -69,6 +71,16 @@ describe('mqtt integration', () => {
 		expect(payload.blower).toBe('ON');
 		expect(payload.alert).toBe('ON');
 		expect(payload.alert_type).toBe('high');
+	});
+
+	test('passes MQTT_USERNAME/MQTT_PASSWORD as connect options (avoids URL mangling)', () => {
+		process.env.MQTT_URL = 'mqtt://10.0.10.3:1883';
+		process.env.MQTT_USERNAME = 'smokerpi';
+		process.env.MQTT_PASSWORD = 'p@ss:w/rd#123';
+		initMqtt();
+		const opts = mqtt.connect.mock.calls[0][1];
+		expect(opts.username).toBe('smokerpi');
+		expect(opts.password).toBe('p@ss:w/rd#123');
 	});
 
 	test('honors a custom topic prefix', () => {

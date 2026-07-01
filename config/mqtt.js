@@ -26,11 +26,19 @@ module.exports = function initMqtt() {
     const stateTopic = prefix + '/state';
     const availabilityTopic = prefix + '/availability';
 
-    const client = mqtt.connect(url, {
+    const options = {
         // Last will: if the smoker drops off, HA marks the entities unavailable.
         will: { topic: availabilityTopic, payload: 'offline', retain: true, qos: 1 },
         reconnectPeriod: 5000
-    });
+    };
+    // Prefer explicit credential env vars over creds embedded in MQTT_URL, so a
+    // password containing URL-special characters (@ : / #) doesn't get mangled by
+    // URL parsing (a common cause of "Not authorized"). These override any creds
+    // in the URL.
+    if (process.env.MQTT_USERNAME) options.username = process.env.MQTT_USERNAME;
+    if (process.env.MQTT_PASSWORD) options.password = process.env.MQTT_PASSWORD;
+
+    const client = mqtt.connect(url, options);
 
     client.on('connect', () => {
         console.log('MQTT connected to ' + url.replace(/\/\/.*@/, '//***@'));

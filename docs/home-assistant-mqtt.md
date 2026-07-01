@@ -46,7 +46,7 @@ active cook and won't fire "too cool" while it's still warming up from cold.
 
 ## 3. Automation — repeat until acknowledged
 
-Replace `notify.mobile_app_YOUR_PHONE` with your device's notify service.
+Notify service is set to `notify.mobile_app_kells_s23u` (your S23 Ultra). Change it if you want alerts on a different device.
 
 ```yaml
 alias: SmokerPi temperature alert (repeat until acknowledged)
@@ -58,7 +58,7 @@ triggers:
 actions:
   - repeat:
       sequence:
-        - action: notify.mobile_app_YOUR_PHONE
+        - action: notify.mobile_app_kells_s23u
           data:
             title: "🔥 Smoker alert"
             message: "{{ state_attr('binary_sensor.temperature_alert', 'alert_reason') }}"
@@ -83,7 +83,7 @@ actions:
         - condition: template
           # stop when acknowledged OR the alert cleared; keep going on timeout
           value_template: "{{ wait.trigger is not none }}"
-  - action: notify.mobile_app_YOUR_PHONE   # dismiss the lingering notification
+  - action: notify.mobile_app_kells_s23u   # dismiss the lingering notification
     data:
       message: clear_notification
       data:
@@ -99,7 +99,7 @@ triggers:
     entity_id: binary_sensor.meat_ready
     to: "on"
 actions:
-  - action: notify.mobile_app_YOUR_PHONE
+  - action: notify.mobile_app_kells_s23u
     data:
       title: "✅ Meat is ready"
       message: "Meat reached its target temperature."
